@@ -11,7 +11,7 @@ import uuid
 import time
 
 # Configuration
-BASE_URL = "https://pulse-insights-5.preview.emergentagent.com/api"
+BASE_URL = "https://design-platform-app.preview.emergentagent.com/api"
 TEST_USER_EMAIL = "sarah.wellness@example.com"
 TEST_USER_PASSWORD = "SecurePass123!"
 TEST_USER_NAME = "Sarah Wellness"
