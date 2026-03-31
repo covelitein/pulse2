@@ -107,7 +107,24 @@ export default function MainLayout() {
           name="Notifications"
           component={NotificationsScreen}
           options={{
-
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="notifications" size={size} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="person" size={size} color={color} />
+            ),
+          }}
+        />
+      </Drawer.Navigator>
+    </NavigationContainer>
+  );
+}
 
 const styles = StyleSheet.create({
   drawerContainer: {
@@ -140,22 +157,3 @@ const styles = StyleSheet.create({
     fontFamily: typography.regular,
   },
 });
-
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="notifications" size={size} color={color} />
-            ),
-          }}
-        />
-        <Drawer.Screen
-          name="Profile"
-          component={ProfileScreen}
-          options={{
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="person" size={size} color={color} />
-            ),
-          }}
-        />
-      </Drawer.Navigator>
-    </NavigationContainer>
-  );
-}
