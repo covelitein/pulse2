@@ -63,7 +63,7 @@ export default function RegisterScreen() {
       await setAuth(user, access_token);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       showToast('Account created successfully!', 'success');
-      setTimeout(() => router.replace('/(main)/home'), 500);
+      setTimeout(() => router.replace('/(main)'), 500);
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast(

@@ -49,7 +49,7 @@ export default function LoginScreen() {
       await setAuth(user, access_token);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       showToast('Welcome back!', 'success');
-      setTimeout(() => router.replace('/(main)/home'), 500);
+      setTimeout(() => router.replace('/(main)'), 500);
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast(

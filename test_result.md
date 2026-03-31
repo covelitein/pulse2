@@ -179,7 +179,7 @@ frontend:
     implemented: true
     working: false
     file: "/app/frontend/app/(auth)/*"
-    stuck_count: 2
+    stuck_count: 3
     priority: "high"
     needs_retesting: true
     status_history:
@@ -195,12 +195,15 @@ frontend:
       - working: false
         agent: "testing"
         comment: "CRITICAL ROUTING BUG: App now loads successfully. Login/Register screens render correctly. Backend APIs work (200 OK responses). However, TWO BLOCKING ISSUES: 1) Input field visibility bug - after filling name field on registration form, email and password fields become non-interactable (Playwright reports 'element is not visible'), 2) CRITICAL: After successful login/register, navigation to '/(main)/home' fails because route doesn't exist. Root cause: /app/frontend/app/_layout.tsx line 38 incorrectly registers '<Stack.Screen name=\"(main)/home\" />' when it should be '<Stack.Screen name=\"(main)\" />' since (main) is a group with drawer layout. Both login.tsx (line 52) and register.tsx (line 66) navigate to '/(main)/home' which fails. Users cannot access app after authentication."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL ROUTING BUG STILL PRESENT: Comprehensive testing completed. Previous routing fix (changing (main)/home to (main)) was applied correctly in _layout.tsx line 38, login.tsx line 52, and register.tsx line 66. However, NEW CRITICAL ISSUE FOUND: After successful login, app navigates to '/(main)' but shows 'Unmatched Route - Page could not be found' error. ROOT CAUSE: The (main) directory has NO index.tsx file. When navigating to '/(main)', Expo Router doesn't know which screen to show by default. The (main) group has _layout.tsx (drawer navigator) and individual screens (home.tsx, habits.tsx, etc.) but no index route. ADDITIONAL ISSUES: 1) Duplicate input elements in DOM - login screen inputs remain mounted when navigating to register screen (5 total inputs instead of 3), causing Playwright selector issues. 2) Registration form submission fails silently - form appears filled but React state not updated, validation fails. Login test with test@pulse.com/test123 successfully calls backend API (200 OK) but fails with routing error. Users CANNOT access app after authentication."
 
   - task: "Drawer navigation"
     implemented: true
     working: false
     file: "/app/frontend/app/(main)/_layout.tsx"
-    stuck_count: 2
+    stuck_count: 3
     priority: "high"
     needs_retesting: true
     status_history:
@@ -216,6 +219,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Cannot test drawer navigation due to CRITICAL ROUTING BUG blocking authentication. Users cannot access the main app screens because navigation to '/(main)/home' fails after login/register. The drawer navigation code appears correct, but cannot be verified until the routing issue in /app/frontend/app/_layout.tsx is fixed (line 38 should register '(main)' not '(main)/home')."
+      - working: false
+        agent: "testing"
+        comment: "Cannot test drawer navigation due to CRITICAL ROUTING BUG. After successful login, app navigates to '/(main)' but shows 'Unmatched Route' error because (main) directory has no index.tsx file. Drawer navigation code is correctly implemented but cannot be accessed due to routing issue."
 
   - task: "Home/Dashboard screen"
     implemented: true
@@ -372,8 +378,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Fix CRITICAL routing bug in /app/frontend/app/_layout.tsx"
-    - "Fix input field visibility issue on registration form"
+    - "Fix CRITICAL routing bug: Create index.tsx in (main) directory"
+    - "Fix duplicate input elements issue (login screen inputs remain in DOM)"
     - "Authentication screens (Login/Register)"
   stuck_tasks:
     - "All frontend screens - blocked by routing bug preventing post-auth navigation"
@@ -393,3 +399,5 @@ agent_communication:
     message: "CRITICAL FRONTEND ISSUES FOUND: Attempted comprehensive end-to-end testing of React Native Expo app but encountered blocking issues: 1) FIXED: Missing dependency react-native-worklets@0.5.1 (was causing module not found error), 2) FIXED: Critical syntax error in /app/frontend/app/(main)/_layout.tsx where const styles declaration was incorrectly placed inside JSX component (line 112), breaking file structure - moved styles to end of file, 3) BLOCKING: Expo server continuously failing with ngrok tunnel connection errors (TypeError: Cannot read properties of undefined reading 'body'). The --tunnel flag in supervisor config is causing the app to fail to load. App shows 500 Internal Server Error and blank screens. Cannot perform any UI testing until Expo server runs successfully. Backend APIs confirmed working. Code review of all frontend screens shows proper implementation of production improvements (Toast notifications, validation, loading states, haptic feedback)."
   - agent: "testing"
     message: "COMPREHENSIVE TESTING COMPLETED - CRITICAL ROUTING BUG FOUND: App now loads successfully at http://localhost:3000. Conducted extensive testing of all authentication and navigation flows. FINDINGS: 1) ✓ Login screen renders correctly, 2) ✓ Registration screen renders correctly, 3) ✓ Backend APIs working (login/register return 200 OK), 4) ✗ CRITICAL BUG: Login/Registration forms have input field visibility issues - after filling the first field (name), subsequent fields (email, password) become non-interactable (Playwright reports 'element is not visible'), 5) ✗ CRITICAL ROUTING BUG: After successful login/registration, app tries to navigate to '/(main)/home' but this route doesn't exist. Console shows repeated warning: '[Layout children]: No route named (main)/home exists in nested children: [index, (auth)/login, (auth)/register, (main)]'. ROOT CAUSE: /app/frontend/app/_layout.tsx line 38 incorrectly registers route as '<Stack.Screen name=\"(main)/home\" />' when it should be '<Stack.Screen name=\"(main)\" />' because (main) is a group with its own drawer layout. Both login.tsx (line 52) and register.tsx (line 66) try to navigate to '/(main)/home' which fails. This blocks all authentication flows - users cannot access the app after login/registration."
+  - agent: "testing"
+    message: "CRITICAL ROUTING BUG PERSISTS - NEW ROOT CAUSE IDENTIFIED: Comprehensive end-to-end testing completed with mobile viewport (375x812). Previous routing fix was correctly applied (_layout.tsx line 38 now has '(main)', login.tsx line 52 and register.tsx line 66 now navigate to '/(main)'). However, CRITICAL ISSUE REMAINS: After successful login with test@pulse.com/test123, backend API returns 200 OK, but app navigates to http://localhost:3000/(main) and shows 'Unmatched Route - Page could not be found' error. ROOT CAUSE: The /app/frontend/app/(main)/ directory has NO index.tsx file. When Expo Router navigates to '/(main)', it doesn't know which screen to show by default. The directory contains _layout.tsx (drawer navigator) and individual screens (home.tsx, habits.tsx, mood.tsx, focus.tsx, insights.tsx, search.tsx, notifications.tsx, profile.tsx) but no index route. ADDITIONAL FINDINGS: 1) Duplicate input elements issue confirmed - login screen inputs (index 0, 1) remain in DOM when navigating to register screen, causing 5 total inputs instead of 3. This causes Playwright selector issues but may not affect real users. 2) Registration form submission fails silently - form appears filled in DOM but React state not updated, causing validation to fail. This is a React Native Web + Playwright incompatibility. SOLUTION NEEDED: Create /app/frontend/app/(main)/index.tsx that redirects to the Home screen, OR modify navigation to use a specific screen route."
