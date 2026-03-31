@@ -179,9 +179,9 @@ frontend:
     implemented: true
     working: false
     file: "/app/frontend/app/(auth)/*"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -192,14 +192,17 @@ frontend:
       - working: false
         agent: "testing"
         comment: "CRITICAL: Frontend app not loading due to multiple issues: 1) Missing dependency react-native-worklets (installed 0.5.1), 2) Syntax error in _layout.tsx (styles declaration in wrong location - FIXED), 3) Expo server failing with ngrok tunnel errors preventing app from loading. Tunnel mode (--tunnel flag) causing continuous connection failures. App cannot be tested until Expo server runs successfully. Fixed code issues but infrastructure problem remains."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL ROUTING BUG: App now loads successfully. Login/Register screens render correctly. Backend APIs work (200 OK responses). However, TWO BLOCKING ISSUES: 1) Input field visibility bug - after filling name field on registration form, email and password fields become non-interactable (Playwright reports 'element is not visible'), 2) CRITICAL: After successful login/register, navigation to '/(main)/home' fails because route doesn't exist. Root cause: /app/frontend/app/_layout.tsx line 38 incorrectly registers '<Stack.Screen name=\"(main)/home\" />' when it should be '<Stack.Screen name=\"(main)\" />' since (main) is a group with drawer layout. Both login.tsx (line 52) and register.tsx (line 66) navigate to '/(main)/home' which fails. Users cannot access app after authentication."
 
   - task: "Drawer navigation"
     implemented: true
     working: false
     file: "/app/frontend/app/(main)/_layout.tsx"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -210,14 +213,17 @@ frontend:
       - working: false
         agent: "testing"
         comment: "CRITICAL CODE FIX: Fixed syntax error in _layout.tsx where const styles declaration was placed inside JSX (line 112), breaking the component structure. Moved styles to end of file after component definition. However, cannot verify fix due to Expo server tunnel failures preventing app from loading."
+      - working: false
+        agent: "testing"
+        comment: "Cannot test drawer navigation due to CRITICAL ROUTING BUG blocking authentication. Users cannot access the main app screens because navigation to '/(main)/home' fails after login/register. The drawer navigation code appears correct, but cannot be verified until the routing issue in /app/frontend/app/_layout.tsx is fixed (line 38 should register '(main)' not '(main)/home')."
 
   - task: "Home/Dashboard screen"
     implemented: true
     working: false
     file: "/app/frontend/app/(main)/home.tsx"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -228,14 +234,17 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Cannot test - Expo server not loading due to ngrok tunnel failures. Code review shows proper implementation with loading states, Toast notifications, and error handling."
+      - working: false
+        agent: "testing"
+        comment: "Cannot test home screen due to CRITICAL ROUTING BUG blocking authentication. Users cannot reach this screen because navigation fails after login/register. Code review shows proper implementation with weekly stats, habits, mood sections, and quick actions."
 
   - task: "Habits screen"
     implemented: true
     working: false
     file: "/app/frontend/app/(main)/habits.tsx"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -243,14 +252,17 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Cannot test - Expo server not loading. Code review shows proper implementation with modal for habit creation, color/icon selection, and streak tracking."
+      - working: false
+        agent: "testing"
+        comment: "Cannot test habits screen due to CRITICAL ROUTING BUG blocking authentication. Users cannot reach this screen. Code review shows proper implementation with habit creation modal, color/icon selection, and streak tracking."
 
   - task: "Mood tracking screen"
     implemented: true
     working: false
     file: "/app/frontend/app/(main)/mood.tsx"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -258,14 +270,17 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Cannot test - Expo server not loading. Code review shows proper implementation with mood levels (1-5), energy slider, sleep hours selection, and notes input."
+      - working: false
+        agent: "testing"
+        comment: "Cannot test mood screen due to CRITICAL ROUTING BUG blocking authentication. Users cannot reach this screen. Code review shows proper implementation with mood levels, energy slider, sleep hours selection, and notes input."
 
   - task: "Focus timer screen"
     implemented: true
     working: false
     file: "/app/frontend/app/(main)/focus.tsx"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -273,14 +288,17 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Cannot test - Expo server not loading. Code review shows proper implementation with timer countdown, preset durations (15, 25, 45, 60 min), and session tracking."
+      - working: false
+        agent: "testing"
+        comment: "Cannot test focus screen due to CRITICAL ROUTING BUG blocking authentication. Users cannot reach this screen. Code review shows proper implementation with timer countdown and session tracking."
 
   - task: "Insights/Analytics screen"
     implemented: true
     working: false
     file: "/app/frontend/app/(main)/insights.tsx"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -288,14 +306,17 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Cannot test - Expo server not loading. Code review shows proper implementation with weekly stats, insights cards, habit streaks, and bar charts for mood/focus trends."
+      - working: false
+        agent: "testing"
+        comment: "Cannot test insights screen due to CRITICAL ROUTING BUG blocking authentication. Users cannot reach this screen. Code review shows proper implementation with analytics and charts."
 
   - task: "Search screen"
     implemented: true
     working: false
     file: "/app/frontend/app/(main)/search.tsx"
-    stuck_count: 1
+    stuck_count: 2
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -303,14 +324,17 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Cannot test - Expo server not loading."
+      - working: false
+        agent: "testing"
+        comment: "Cannot test search screen due to CRITICAL ROUTING BUG blocking authentication."
 
   - task: "Notifications screen"
     implemented: true
     working: false
     file: "/app/frontend/app/(main)/notifications.tsx"
-    stuck_count: 1
+    stuck_count: 2
     priority: "low"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -318,14 +342,17 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Cannot test - Expo server not loading."
+      - working: false
+        agent: "testing"
+        comment: "Cannot test notifications screen due to CRITICAL ROUTING BUG blocking authentication."
 
   - task: "Profile screen"
     implemented: true
     working: false
     file: "/app/frontend/app/(main)/profile.tsx"
-    stuck_count: 1
+    stuck_count: 2
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
@@ -333,23 +360,25 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Cannot test - Expo server not loading. Code review shows proper implementation with user avatar, profile info, menu items, and logout functionality."
+      - working: false
+        agent: "testing"
+        comment: "Cannot test profile screen due to CRITICAL ROUTING BUG blocking authentication. Code review shows proper implementation with logout functionality."
 
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 1
+  test_sequence: 2
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Fix Expo server tunnel issues"
+    - "Fix CRITICAL routing bug in /app/frontend/app/_layout.tsx"
+    - "Fix input field visibility issue on registration form"
     - "Authentication screens (Login/Register)"
-    - "Drawer navigation"
-    - "Home/Dashboard screen"
   stuck_tasks:
-    - "All frontend screens - blocked by Expo server tunnel failures"
+    - "All frontend screens - blocked by routing bug preventing post-auth navigation"
   test_all: false
-  test_priority: "infrastructure_first"
+  test_priority: "critical_bugs_first"
 
 agent_communication:
   - agent: "main"
@@ -362,3 +391,5 @@ agent_communication:
     message: "Post-production improvements testing completed successfully. All backend APIs remain fully functional after production improvements. Comprehensive testing with test credentials from /app/memory/test_credentials.md confirmed: 1) All 12 endpoints working correctly (auth, habits, mood, focus, analytics), 2) JWT authentication and security protection working properly, 3) Data persistence and calculations accurate, 4) Test users (test@pulse.com, demo@pulse.com) can register/login successfully, 5) All CRUD operations functioning correctly. Created additional test file backend_test_credentials.py for credential-specific testing. Backend is stable and production-ready."
   - agent: "testing"
     message: "CRITICAL FRONTEND ISSUES FOUND: Attempted comprehensive end-to-end testing of React Native Expo app but encountered blocking issues: 1) FIXED: Missing dependency react-native-worklets@0.5.1 (was causing module not found error), 2) FIXED: Critical syntax error in /app/frontend/app/(main)/_layout.tsx where const styles declaration was incorrectly placed inside JSX component (line 112), breaking file structure - moved styles to end of file, 3) BLOCKING: Expo server continuously failing with ngrok tunnel connection errors (TypeError: Cannot read properties of undefined reading 'body'). The --tunnel flag in supervisor config is causing the app to fail to load. App shows 500 Internal Server Error and blank screens. Cannot perform any UI testing until Expo server runs successfully. Backend APIs confirmed working. Code review of all frontend screens shows proper implementation of production improvements (Toast notifications, validation, loading states, haptic feedback)."
+  - agent: "testing"
+    message: "COMPREHENSIVE TESTING COMPLETED - CRITICAL ROUTING BUG FOUND: App now loads successfully at http://localhost:3000. Conducted extensive testing of all authentication and navigation flows. FINDINGS: 1) ✓ Login screen renders correctly, 2) ✓ Registration screen renders correctly, 3) ✓ Backend APIs working (login/register return 200 OK), 4) ✗ CRITICAL BUG: Login/Registration forms have input field visibility issues - after filling the first field (name), subsequent fields (email, password) become non-interactable (Playwright reports 'element is not visible'), 5) ✗ CRITICAL ROUTING BUG: After successful login/registration, app tries to navigate to '/(main)/home' but this route doesn't exist. Console shows repeated warning: '[Layout children]: No route named (main)/home exists in nested children: [index, (auth)/login, (auth)/register, (main)]'. ROOT CAUSE: /app/frontend/app/_layout.tsx line 38 incorrectly registers route as '<Stack.Screen name=\"(main)/home\" />' when it should be '<Stack.Screen name=\"(main)\" />' because (main) is a group with its own drawer layout. Both login.tsx (line 52) and register.tsx (line 66) try to navigate to '/(main)/home' which fails. This blocks all authentication flows - users cannot access the app after login/registration."
