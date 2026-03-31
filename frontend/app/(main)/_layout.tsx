@@ -1,7 +1,9 @@
 import React from 'react';
-import { createDrawerNavigator } from '@react-navigation/drawer';
+import { View, Text, StyleSheet } from 'react-native';
+import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
-import { palette } from '../../constants/theme';
+import { palette, spacing, typography } from '../../constants/theme';
+import { useAuthStore } from '../../store/authStore';
 import HomeScreen from './home';
 import HabitsScreen from './habits';
 import MoodScreen from './mood';
@@ -14,10 +16,26 @@ import { Ionicons } from '@expo/vector-icons';
 
 const Drawer = createDrawerNavigator();
 
+function CustomDrawerContent(props: any) {
+  const { user } = useAuthStore();
+  return (
+    <DrawerContentScrollView {...props} style={styles.drawerContainer}>
+      <View style={styles.drawerHeader}>
+        <Ionicons name="pulse" size={40} color={palette.accentBlue} />
+        <Text style={styles.drawerTitle}>Pulse</Text>
+        <Text style={styles.drawerSubtitle}>{user?.name || 'User'}</Text>
+        <Text style={styles.drawerEmail}>{user?.email || ''}</Text>
+      </View>
+      <DrawerItemList {...props} />
+    </DrawerContentScrollView>
+  );
+}
+
 export default function MainLayout() {
   return (
     <NavigationContainer independent={true}>
       <Drawer.Navigator
+        drawerContent={(props) => <CustomDrawerContent {...props} />}
         screenOptions={{
           drawerStyle: {
             backgroundColor: palette.surface,
@@ -89,6 +107,40 @@ export default function MainLayout() {
           name="Notifications"
           component={NotificationsScreen}
           options={{
+
+
+const styles = StyleSheet.create({
+  drawerContainer: {
+    backgroundColor: palette.surface,
+  },
+  drawerHeader: {
+    padding: spacing.lg,
+    paddingTop: spacing.xl,
+    borderBottomWidth: 1,
+    borderBottomColor: palette.border,
+    marginBottom: spacing.md,
+  },
+  drawerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: palette.text,
+    marginTop: spacing.sm,
+    fontFamily: typography.bold,
+  },
+  drawerSubtitle: {
+    fontSize: 16,
+    color: palette.text,
+    marginTop: spacing.xs,
+    fontFamily: typography.medium,
+  },
+  drawerEmail: {
+    fontSize: 12,
+    color: palette.muted,
+    marginTop: spacing.xs / 2,
+    fontFamily: typography.regular,
+  },
+});
+
             drawerIcon: ({ color, size }) => (
               <Ionicons name="notifications" size={size} color={color} />
             ),

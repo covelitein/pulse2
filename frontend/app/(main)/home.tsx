@@ -6,21 +6,28 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { palette, spacing, borderRadius, typography } from '../../constants/theme';
 import { useAuthStore } from '../../store/authStore';
-import { habitsAPI, moodAPI, focusAPI, analyticsAPI } from '../../services/api';
+import { habitsAPI, moodAPI, analyticsAPI } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
+import * as Haptics from 'expo-haptics';
+import { useToast } from '../../hooks/useToast';
+import Toast from '../../components/Toast';
 
 export default function HomeScreen({ navigation }: any) {
   const { user } = useAuthStore();
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<any>(null);
   const [todayHabits, setTodayHabits] = useState<any[]>([]);
   const [todayMood, setTodayMood] = useState<any>(null);
+  const { toast, showToast, hideToast } = useToast();
 
-  const loadData = async () => {
+  const loadData = async (showLoadingIndicator = true) => {
+    if (showLoadingIndicator) setLoading(true);
     try {
       const today = format(new Date(), 'yyyy-MM-dd');
       
@@ -46,8 +53,14 @@ export default function HomeScreen({ navigation }: any) {
       const moodRes = await moodAPI.getAll();
       const todayMoodEntry = moodRes.data.find((m: any) => m.date === today);
       setTodayMood(todayMoodEntry);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load home data:', error);
+      showToast(
+        error.response?.data?.detail || 'Failed to load data',
+        'error'
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,7 +70,8 @@ export default function HomeScreen({ navigation }: any) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadData();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await loadData(false);
     setRefreshing(false);
   };
 
@@ -69,11 +83,29 @@ export default function HomeScreen({ navigation }: any) {
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color={palette.accentBlue} />
+        <Text style={[styles.loadingText, { marginTop: spacing.md }]}>
+          Loading your insights...
+        </Text>
+      </View>
+    );
+  }
+
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={palette.accentBlue} />}
-    >
+    <>
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        visible={toast.visible}
+        onDismiss={hideToast}
+      />
+      <ScrollView
+        style={styles.container}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={palette.accentBlue} />}
+      >
       <View style={styles.header}>
         <Text style={styles.greeting}>Hello, {user?.name}!</Text>
         <Text style={styles.date}>{format(new Date(), 'EEEE, MMMM d')}</Text>
@@ -205,6 +237,7 @@ export default function HomeScreen({ navigation }: any) {
         </View>
       </View>
     </ScrollView>
+    </>
   );
 }
 
@@ -212,6 +245,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: palette.background,
+  },
+  centerContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    color: palette.muted,
+    fontSize: 14,
+    fontFamily: typography.regular,
   },
   header: {
     padding: spacing.lg,

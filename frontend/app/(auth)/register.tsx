@@ -7,7 +7,6 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
@@ -16,6 +15,10 @@ import { palette, spacing, borderRadius, typography } from '../../constants/them
 import { authAPI } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { Ionicons } from '@expo/vector-icons';
+import { useToast } from '../../hooks/useToast';
+import Toast from '../../components/Toast';
+import { isValidEmail, isValidPassword, isValidName } from '../../utils/validation';
+import * as Haptics from 'expo-haptics';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -24,15 +27,32 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { toast, showToast, hideToast } = useToast();
 
   const handleRegister = async () => {
+    // Validation
     if (!name || !email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      showToast('Please fill in all fields', 'error');
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+    if (!isValidName(name)) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      showToast('Name must be at least 2 characters', 'error');
+      return;
+    }
+
+    if (!isValidEmail(email.trim())) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      showToast('Please enter a valid email address', 'error');
+      return;
+    }
+
+    const passwordValidation = isValidPassword(password);
+    if (!passwordValidation.valid) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      showToast(passwordValidation.message!, 'error');
       return;
     }
 
@@ -41,11 +61,14 @@ export default function RegisterScreen() {
       const response = await authAPI.register(name.trim(), email.trim(), password);
       const { access_token, user } = response.data;
       await setAuth(user, access_token);
-      router.replace('/(main)/Home');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showToast('Account created successfully!', 'success');
+      setTimeout(() => router.replace('/(main)/home'), 500);
     } catch (error: any) {
-      Alert.alert(
-        'Registration Failed',
-        error.response?.data?.detail || 'Could not create account'
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      showToast(
+        error.response?.data?.detail || 'Could not create account',
+        'error'
       );
     } finally {
       setIsLoading(false);
@@ -57,6 +80,12 @@ export default function RegisterScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        visible={toast.visible}
+        onDismiss={hideToast}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"

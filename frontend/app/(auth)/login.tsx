@@ -7,7 +7,6 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
@@ -16,6 +15,10 @@ import { palette, spacing, borderRadius, typography } from '../../constants/them
 import { authAPI } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { Ionicons } from '@expo/vector-icons';
+import { useToast } from '../../hooks/useToast';
+import Toast from '../../components/Toast';
+import { isValidEmail } from '../../utils/validation';
+import * as Haptics from 'expo-haptics';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -23,10 +26,19 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { toast, showToast, hideToast } = useToast();
 
   const handleLogin = async () => {
+    // Validation
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      showToast('Please fill in all fields', 'error');
+      return;
+    }
+
+    if (!isValidEmail(email.trim())) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      showToast('Please enter a valid email address', 'error');
       return;
     }
 
@@ -35,11 +47,14 @@ export default function LoginScreen() {
       const response = await authAPI.login(email.trim(), password);
       const { access_token, user } = response.data;
       await setAuth(user, access_token);
-      router.replace('/(main)/Home');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showToast('Welcome back!', 'success');
+      setTimeout(() => router.replace('/(main)/home'), 500);
     } catch (error: any) {
-      Alert.alert(
-        'Login Failed',
-        error.response?.data?.detail || 'Invalid email or password'
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      showToast(
+        error.response?.data?.detail || 'Invalid email or password',
+        'error'
       );
     } finally {
       setIsLoading(false);
@@ -51,6 +66,12 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        visible={toast.visible}
+        onDismiss={hideToast}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
