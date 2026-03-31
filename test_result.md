@@ -179,7 +179,7 @@ frontend:
     implemented: true
     working: false
     file: "/app/frontend/app/(auth)/*"
-    stuck_count: 3
+    stuck_count: 4
     priority: "high"
     needs_retesting: true
     status_history:
@@ -198,12 +198,15 @@ frontend:
       - working: false
         agent: "testing"
         comment: "CRITICAL ROUTING BUG STILL PRESENT: Comprehensive testing completed. Previous routing fix (changing (main)/home to (main)) was applied correctly in _layout.tsx line 38, login.tsx line 52, and register.tsx line 66. However, NEW CRITICAL ISSUE FOUND: After successful login, app navigates to '/(main)' but shows 'Unmatched Route - Page could not be found' error. ROOT CAUSE: The (main) directory has NO index.tsx file. When navigating to '/(main)', Expo Router doesn't know which screen to show by default. The (main) group has _layout.tsx (drawer navigator) and individual screens (home.tsx, habits.tsx, etc.) but no index route. ADDITIONAL ISSUES: 1) Duplicate input elements in DOM - login screen inputs remain mounted when navigating to register screen (5 total inputs instead of 3), causing Playwright selector issues. 2) Registration form submission fails silently - form appears filled but React state not updated, validation fails. Login test with test@pulse.com/test123 successfully calls backend API (200 OK) but fails with routing error. Users CANNOT access app after authentication."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL ARCHITECTURAL BUG - NESTED NAVIGATIONCONTAINER ERROR: Comprehensive testing with mobile viewport (375x812) revealed BLOCKING issue. Login screen loads correctly, credentials can be filled (test@pulse.com/test123), Sign In button clicks successfully, backend API returns 200 OK. However, after login, app shows RED ERROR SCREEN: 'Uncaught Error: Looks like you have nested a NavigationContainer inside another. Normally you need only one container at the root of the app.' ROOT CAUSE: /app/frontend/app/(main)/_layout.tsx line 36 wraps drawer navigator with <NavigationContainer independent={true}>. This is WRONG PATTERN for Expo Router. Expo Router automatically manages NavigationContainer globally - you should NEVER manually add one. The file uses React Navigation's createDrawerNavigator() pattern instead of Expo Router's <Drawer> component from 'expo-router/drawer'. IMPACT: App completely broken - cannot navigate anywhere after login, red error screen blocks all functionality. URL stays at /login, no navigation occurs. SOLUTION REQUIRED: Complete rewrite of /app/frontend/app/(main)/_layout.tsx to use Expo Router's <Drawer> component instead of React Navigation's createDrawerNavigator. Remove NavigationContainer wrapper entirely. This is a MAJOR architectural issue requiring significant refactoring."
 
   - task: "Drawer navigation"
     implemented: true
     working: false
     file: "/app/frontend/app/(main)/_layout.tsx"
-    stuck_count: 3
+    stuck_count: 4
     priority: "high"
     needs_retesting: true
     status_history:
@@ -222,6 +225,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Cannot test drawer navigation due to CRITICAL ROUTING BUG. After successful login, app navigates to '/(main)' but shows 'Unmatched Route' error because (main) directory has no index.tsx file. Drawer navigation code is correctly implemented but cannot be accessed due to routing issue."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL ARCHITECTURAL BUG: Drawer navigation implemented using WRONG PATTERN. File uses React Navigation's createDrawerNavigator() and wraps it with <NavigationContainer independent={true}> at line 36. This causes nested NavigationContainer error because Expo Router already provides one globally. The entire drawer implementation needs to be rewritten using Expo Router's <Drawer> component from 'expo-router/drawer' instead of React Navigation's createDrawerNavigator. This is blocking all post-login navigation. Cannot test drawer functionality until this architectural issue is fixed."
 
   - task: "Home/Dashboard screen"
     implemented: true
@@ -373,16 +379,17 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 2
+  test_sequence: 3
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Fix CRITICAL routing bug: Create index.tsx in (main) directory"
-    - "Fix duplicate input elements issue (login screen inputs remain in DOM)"
-    - "Authentication screens (Login/Register)"
+    - "Fix CRITICAL architectural bug: Rewrite drawer navigation to use Expo Router pattern"
+    - "Remove NavigationContainer from (main)/_layout.tsx"
+    - "Convert from React Navigation createDrawerNavigator to Expo Router <Drawer> component"
   stuck_tasks:
-    - "All frontend screens - blocked by routing bug preventing post-auth navigation"
+    - "Drawer navigation - wrong architectural pattern causing nested NavigationContainer error"
+    - "All frontend screens - blocked by drawer navigation architectural bug"
   test_all: false
   test_priority: "critical_bugs_first"
 
@@ -401,3 +408,5 @@ agent_communication:
     message: "COMPREHENSIVE TESTING COMPLETED - CRITICAL ROUTING BUG FOUND: App now loads successfully at http://localhost:3000. Conducted extensive testing of all authentication and navigation flows. FINDINGS: 1) ✓ Login screen renders correctly, 2) ✓ Registration screen renders correctly, 3) ✓ Backend APIs working (login/register return 200 OK), 4) ✗ CRITICAL BUG: Login/Registration forms have input field visibility issues - after filling the first field (name), subsequent fields (email, password) become non-interactable (Playwright reports 'element is not visible'), 5) ✗ CRITICAL ROUTING BUG: After successful login/registration, app tries to navigate to '/(main)/home' but this route doesn't exist. Console shows repeated warning: '[Layout children]: No route named (main)/home exists in nested children: [index, (auth)/login, (auth)/register, (main)]'. ROOT CAUSE: /app/frontend/app/_layout.tsx line 38 incorrectly registers route as '<Stack.Screen name=\"(main)/home\" />' when it should be '<Stack.Screen name=\"(main)\" />' because (main) is a group with its own drawer layout. Both login.tsx (line 52) and register.tsx (line 66) try to navigate to '/(main)/home' which fails. This blocks all authentication flows - users cannot access the app after login/registration."
   - agent: "testing"
     message: "CRITICAL ROUTING BUG PERSISTS - NEW ROOT CAUSE IDENTIFIED: Comprehensive end-to-end testing completed with mobile viewport (375x812). Previous routing fix was correctly applied (_layout.tsx line 38 now has '(main)', login.tsx line 52 and register.tsx line 66 now navigate to '/(main)'). However, CRITICAL ISSUE REMAINS: After successful login with test@pulse.com/test123, backend API returns 200 OK, but app navigates to http://localhost:3000/(main) and shows 'Unmatched Route - Page could not be found' error. ROOT CAUSE: The /app/frontend/app/(main)/ directory has NO index.tsx file. When Expo Router navigates to '/(main)', it doesn't know which screen to show by default. The directory contains _layout.tsx (drawer navigator) and individual screens (home.tsx, habits.tsx, mood.tsx, focus.tsx, insights.tsx, search.tsx, notifications.tsx, profile.tsx) but no index route. ADDITIONAL FINDINGS: 1) Duplicate input elements issue confirmed - login screen inputs (index 0, 1) remain in DOM when navigating to register screen, causing 5 total inputs instead of 3. This causes Playwright selector issues but may not affect real users. 2) Registration form submission fails silently - form appears filled in DOM but React state not updated, causing validation to fail. This is a React Native Web + Playwright incompatibility. SOLUTION NEEDED: Create /app/frontend/app/(main)/index.tsx that redirects to the Home screen, OR modify navigation to use a specific screen route."
+  - agent: "testing"
+    message: "CRITICAL ARCHITECTURAL BUG FOUND - COMPLETE REWRITE REQUIRED: Final comprehensive testing with mobile viewport (375x812) revealed BLOCKING architectural issue. Login screen loads correctly, credentials fill successfully (test@pulse.com/test123), Sign In button works, backend API returns 200 OK. However, after login, app displays RED ERROR SCREEN with: 'Uncaught Error: Looks like you have nested a NavigationContainer inside another. Normally you need only one container at the root of the app.' ROOT CAUSE: /app/frontend/app/(main)/_layout.tsx uses WRONG ARCHITECTURAL PATTERN. It implements drawer navigation using React Navigation's createDrawerNavigator() (line 17) and wraps it with <NavigationContainer independent={true}> (line 36). This is the OLD React Navigation pattern, NOT the Expo Router pattern. In Expo Router, NavigationContainer is automatically managed globally - you should NEVER manually add one. SOLUTION REQUIRED: Complete rewrite of /app/frontend/app/(main)/_layout.tsx to use Expo Router's <Drawer> component from 'expo-router/drawer' instead of React Navigation's createDrawerNavigator. Remove all NavigationContainer wrappers. Reference: https://docs.expo.dev/router/advanced/drawer/ shows correct pattern. IMPACT: App completely broken - cannot navigate anywhere after login, red error screen blocks all functionality, URL stays at /login. This is a MAJOR architectural issue requiring significant refactoring of the entire drawer navigation system. All 8 screens (Home, Habits, Mood, Focus, Insights, Search, Notifications, Profile) need to be restructured to work with Expo Router's file-based routing pattern."
