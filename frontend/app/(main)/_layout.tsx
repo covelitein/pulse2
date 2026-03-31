@@ -1,20 +1,10 @@
-import React from 'react';
+import { Drawer } from 'expo-router/drawer';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { View, Text, StyleSheet } from 'react-native';
-import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
-import { NavigationContainer } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { palette, spacing, typography } from '../../constants/theme';
 import { useAuthStore } from '../../store/authStore';
-import HomeScreen from './home';
-import HabitsScreen from './habits';
-import MoodScreen from './mood';
-import FocusScreen from './focus';
-import InsightsScreen from './insights';
-import SearchScreen from './search';
-import NotificationsScreen from './notifications';
-import ProfileScreen from './profile';
-import { Ionicons } from '@expo/vector-icons';
-
-const Drawer = createDrawerNavigator();
+import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 
 function CustomDrawerContent(props: any) {
   const { user } = useAuthStore();
@@ -33,8 +23,8 @@ function CustomDrawerContent(props: any) {
 
 export default function MainLayout() {
   return (
-    <NavigationContainer independent={true}>
-      <Drawer.Navigator
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Drawer
         drawerContent={(props) => <CustomDrawerContent {...props} />}
         screenOptions={{
           drawerStyle: {
@@ -50,79 +40,93 @@ export default function MainLayout() {
         }}
       >
         <Drawer.Screen
-          name="Home"
-          component={HomeScreen}
+          name="home"
           options={{
+            drawerLabel: 'Home',
+            title: 'Home',
             drawerIcon: ({ color, size }) => (
               <Ionicons name="home" size={size} color={color} />
             ),
           }}
         />
         <Drawer.Screen
-          name="Habits"
-          component={HabitsScreen}
+          name="habits"
           options={{
+            drawerLabel: 'Habits',
+            title: 'Habits',
             drawerIcon: ({ color, size }) => (
               <Ionicons name="checkmark-circle" size={size} color={color} />
             ),
           }}
         />
         <Drawer.Screen
-          name="Mood"
-          component={MoodScreen}
+          name="mood"
           options={{
+            drawerLabel: 'Mood',
+            title: 'Mood',
             drawerIcon: ({ color, size }) => (
               <Ionicons name="happy" size={size} color={color} />
             ),
           }}
         />
         <Drawer.Screen
-          name="Focus"
-          component={FocusScreen}
+          name="focus"
           options={{
+            drawerLabel: 'Focus',
+            title: 'Focus',
             drawerIcon: ({ color, size }) => (
               <Ionicons name="timer" size={size} color={color} />
             ),
           }}
         />
         <Drawer.Screen
-          name="Insights"
-          component={InsightsScreen}
+          name="insights"
           options={{
+            drawerLabel: 'Insights',
+            title: 'Insights',
             drawerIcon: ({ color, size }) => (
               <Ionicons name="analytics" size={size} color={color} />
             ),
           }}
         />
         <Drawer.Screen
-          name="Search"
-          component={SearchScreen}
+          name="search"
           options={{
+            drawerLabel: 'Search',
+            title: 'Search',
             drawerIcon: ({ color, size }) => (
               <Ionicons name="search" size={size} color={color} />
             ),
           }}
         />
         <Drawer.Screen
-          name="Notifications"
-          component={NotificationsScreen}
+          name="notifications"
           options={{
+            drawerLabel: 'Notifications',
+            title: 'Notifications',
             drawerIcon: ({ color, size }) => (
               <Ionicons name="notifications" size={size} color={color} />
             ),
           }}
         />
         <Drawer.Screen
-          name="Profile"
-          component={ProfileScreen}
+          name="profile"
           options={{
+            drawerLabel: 'Profile',
+            title: 'Profile',
             drawerIcon: ({ color, size }) => (
               <Ionicons name="person" size={size} color={color} />
             ),
           }}
         />
-      </Drawer.Navigator>
-    </NavigationContainer>
+        <Drawer.Screen
+          name="index"
+          options={{
+            drawerItemStyle: { display: 'none' },
+          }}
+        />
+      </Drawer>
+    </GestureHandlerRootView>
   );
 }
 
